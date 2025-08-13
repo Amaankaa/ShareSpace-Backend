@@ -1,0 +1,68 @@
+# Git
+.git
+.gitignore
+.github
+
+# Documentation
+README.md
+docs/
+*.md
+
+# Environment files
+.env*
+!.env.example
+
+# Logs
+logs/
+*.log
+
+# Test files
+*_test.go
+coverage.out
+coverage.html
+
+# Build artifacts
+bin/
+dist/
+build/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Docker files
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# CI/CD files
+.github/
+scripts/deploy.sh
+
+# Backup files
+backups/
+*.backup
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Node modules (if any)
+node_modules/
+
+# Monitoring configs
+monitoring/
+nginx/
+
+# SSL certificates
+*.pem
+*.key
+*.crt
