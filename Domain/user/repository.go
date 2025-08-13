@@ -14,8 +14,15 @@ type IUserRepository interface {
 	UpdateUserRoleByID(ctx context.Context, userID, role string) error
 	UpdateIsVerifiedByEmail(ctx context.Context, email string, verified bool) error
 	UpdateProfile(ctx context.Context, userID string, updates UpdateProfileRequest) (User, error)
-    GetUserProfile(ctx context.Context, userID string) (User, error)
+	GetUserProfile(ctx context.Context, userID string) (User, error)
 	UpdateRoleAndPromoter(ctx context.Context, userID string, role string, promoterID *string) error
+
+	// ShareSpace-specific methods
+	GetPublicProfile(ctx context.Context, userID string) (PublicProfile, error)
+	FindMentors(ctx context.Context, topics []string, limit int, offset int) ([]PublicProfile, error)
+	FindMentees(ctx context.Context, topics []string, limit int, offset int) ([]PublicProfile, error)
+	ExistsByDisplayName(ctx context.Context, displayName string) (bool, error)
+	SearchUsersByTopic(ctx context.Context, topic string, isMentor bool, limit int, offset int) ([]PublicProfile, error)
 }
 
 type ITokenRepository interface {

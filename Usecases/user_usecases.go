@@ -3,6 +3,8 @@ package usecases
 import (
 	"context"
 	"errors"
+	"fmt"
+	"math/rand"
 	"mime/multipart"
 	"net/url"
 	"regexp"
@@ -69,7 +71,7 @@ func (uu *UserUsecase) RegisterUser(ctx context.Context, user userpkg.User) (use
 	if exists {
 		return userpkg.User{}, errors.New("username already taken")
 	}
-	
+
 	exists, err = uu.userRepo.ExistsByEmail(ctx, user.Email)
 	if err != nil {
 		return userpkg.User{}, errors.New("failed to check email existence: " + err.Error())
@@ -77,7 +79,7 @@ func (uu *UserUsecase) RegisterUser(ctx context.Context, user userpkg.User) (use
 	if exists {
 		return userpkg.User{}, errors.New("email already taken")
 	}
-	
+
 	// Real email check
 	isReal, err := uu.emailVerifier.IsRealEmail(user.Email)
 	if err != nil {
@@ -91,7 +93,6 @@ func (uu *UserUsecase) RegisterUser(ctx context.Context, user userpkg.User) (use
 	if !utils.IsStrongPassword(user.Password) {
 		return userpkg.User{}, errors.New("password must be at least 8 chars, with upper, lower, number, and special char")
 	}
-
 
 	// Assign role
 	count, err := uu.userRepo.CountUsers(ctx)
@@ -396,17 +397,17 @@ func (u *UserUsecase) VerifyUser(ctx context.Context, email, otp string) error {
 func (u *UserUsecase) UpdateProfile(ctx context.Context, userID string, updates userpkg.UpdateProfileRequest, file multipart.File, filename string) (userpkg.User, error) {
 
 	if updates.Fullname != "" && len(updates.Fullname) < 2 {
-        return userpkg.User{}, errors.New("fullname must be at least 2 characters")
-    }
-    if updates.Bio != "" && len(updates.Bio) > 500 {
-        return userpkg.User{}, errors.New("bio cannot exceed 500 characters")
-    }
-    if updates.ContactInfo.Phone != "" && !IsValidPhone(updates.ContactInfo.Phone) {
-        return userpkg.User{}, errors.New("invalid phone number format")
-    }
-    if updates.ContactInfo.Website != "" && !IsValidURL(updates.ContactInfo.Website) {
+		return userpkg.User{}, errors.New("fullname must be at least 2 characters")
+	}
+	if updates.Bio != "" && len(updates.Bio) > 500 {
+		return userpkg.User{}, errors.New("bio cannot exceed 500 characters")
+	}
+	if updates.ContactInfo.Phone != "" && !IsValidPhone(updates.ContactInfo.Phone) {
+		return userpkg.User{}, errors.New("invalid phone number format")
+	}
+	if updates.ContactInfo.Website != "" && !IsValidURL(updates.ContactInfo.Website) {
 		return userpkg.User{}, errors.New("invalid website URL")
-    }
+	}
 
 	if file != nil && filename != "" {
 		imageURL, err := u.cloudinaryService.UploadImage(ctx, file, filename)
@@ -415,14 +416,14 @@ func (u *UserUsecase) UpdateProfile(ctx context.Context, userID string, updates 
 		}
 		updates.ProfilePicture = imageURL
 	}
-    
+
 	return u.userRepo.UpdateProfile(ctx, userID, updates)
 }
 
 // Helper function
 func IsValidPhone(phone string) bool {
-    phoneRegex := regexp.MustCompile(`^\+?[1-9]\d{1,14}$`)
-    return phoneRegex.MatchString(phone)
+	phoneRegex := regexp.MustCompile(`^\+?[1-9]\d{1,14}$`)
+	return phoneRegex.MatchString(phone)
 }
 
 func IsValidURL(rawurl string) bool {
@@ -432,4 +433,95 @@ func IsValidURL(rawurl string) bool {
 
 func (u *UserUsecase) GetUserProfile(ctx context.Context, userID string) (userpkg.User, error) {
 	return u.userRepo.GetUserProfile(ctx, userID)
+}
+
+// ShareSpace-specific methods
+
+// GetPublicProfile returns a user's public profile respecting privacy settings
+func (u *UserUsecase) GetPublicProfile(ctx context.Context, userID string) (userpkg.PublicProfile, error) {
+	return u.userRepo.GetPublicProfile(ctx, userID)
+}
+
+// FindMentors searches for available mentors by topics
+func (u *UserUsecase) FindMentors(ctx context.Context, topics []string, limit int, offset int) ([]userpkg.PublicProfile, error) {
+	if limit <= 0 || limit > 100 {
+		limit = 20 // Default limit
+	}
+	if offset < 0 {
+		offset = 0
+	}
+
+	return u.userRepo.FindMentors(ctx, topics, limit, offset)
+}
+
+// FindMentees searches for mentees by topics
+func (u *UserUsecase) FindMentees(ctx context.Context, topics []string, limit int, offset int) ([]userpkg.PublicProfile, error) {
+	if limit <= 0 || limit > 100 {
+		limit = 20 // Default limit
+	}
+	if offset < 0 {
+		offset = 0
+	}
+
+	return u.userRepo.FindMentees(ctx, topics, limit, offset)
+}
+
+// SearchUsersByTopic searches users by specific topic and mentor/mentee status
+func (u *UserUsecase) SearchUsersByTopic(ctx context.Context, topic string, isMentor bool, limit int, offset int) ([]userpkg.PublicProfile, error) {
+	if topic == "" {
+		return nil, errors.New("topic cannot be empty")
+	}
+
+	if limit <= 0 || limit > 100 {
+		limit = 20 // Default limit
+	}
+	if offset < 0 {
+		offset = 0
+	}
+
+	return u.userRepo.SearchUsersByTopic(ctx, topic, isMentor, limit, offset)
+}
+
+// GenerateDisplayName creates a unique display name for a user
+func (u *UserUsecase) GenerateDisplayName(ctx context.Context, baseName string) (string, error) {
+	if baseName == "" {
+		baseName = "User"
+	}
+
+	// Clean the base name (remove special characters, spaces)
+	cleanBase := regexp.MustCompile(`[^a-zA-Z0-9]`).ReplaceAllString(baseName, "")
+	if len(cleanBase) > 15 {
+		cleanBase = cleanBase[:15]
+	}
+
+	// Try the base name first
+	exists, err := u.userRepo.ExistsByDisplayName(ctx, cleanBase)
+	if err != nil {
+		return "", err
+	}
+	if !exists {
+		return cleanBase, nil
+	}
+
+	// If base name exists, try with numbers
+	for i := 1; i <= 999; i++ {
+		candidate := fmt.Sprintf("%s%d", cleanBase, i)
+		exists, err := u.userRepo.ExistsByDisplayName(ctx, candidate)
+		if err != nil {
+			return "", err
+		}
+		if !exists {
+			return candidate, nil
+		}
+	}
+
+	// If all numbers are taken, add random suffix
+	rand.Seed(time.Now().UnixNano())
+	randomSuffix := rand.Intn(9999)
+	return fmt.Sprintf("%s%d", cleanBase, randomSuffix), nil
+}
+
+// GetAvailableMentorshipTopics returns the list of available mentorship topics
+func (u *UserUsecase) GetAvailableMentorshipTopics() []string {
+	return userpkg.MentorshipTopics
 }

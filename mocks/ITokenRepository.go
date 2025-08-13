@@ -14,14 +14,6 @@ type ITokenRepository struct {
 	mock.Mock
 }
 
-type ITokenRepository_Expecter struct {
-	mock *mock.Mock
-}
-
-func (_m *ITokenRepository) EXPECT() *ITokenRepository_Expecter {
-	return &ITokenRepository_Expecter{mock: &_m.Mock}
-}
-
 // DeleteByRefreshToken provides a mock function with given fields: ctx, refreshToken
 func (_m *ITokenRepository) DeleteByRefreshToken(ctx context.Context, refreshToken string) error {
 	ret := _m.Called(ctx, refreshToken)
@@ -40,35 +32,6 @@ func (_m *ITokenRepository) DeleteByRefreshToken(ctx context.Context, refreshTok
 	return r0
 }
 
-// ITokenRepository_DeleteByRefreshToken_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteByRefreshToken'
-type ITokenRepository_DeleteByRefreshToken_Call struct {
-	*mock.Call
-}
-
-// DeleteByRefreshToken is a helper method to define mock.On call
-//   - ctx context.Context
-//   - refreshToken string
-func (_e *ITokenRepository_Expecter) DeleteByRefreshToken(ctx interface{}, refreshToken interface{}) *ITokenRepository_DeleteByRefreshToken_Call {
-	return &ITokenRepository_DeleteByRefreshToken_Call{Call: _e.mock.On("DeleteByRefreshToken", ctx, refreshToken)}
-}
-
-func (_c *ITokenRepository_DeleteByRefreshToken_Call) Run(run func(ctx context.Context, refreshToken string)) *ITokenRepository_DeleteByRefreshToken_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string))
-	})
-	return _c
-}
-
-func (_c *ITokenRepository_DeleteByRefreshToken_Call) Return(_a0 error) *ITokenRepository_DeleteByRefreshToken_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *ITokenRepository_DeleteByRefreshToken_Call) RunAndReturn(run func(context.Context, string) error) *ITokenRepository_DeleteByRefreshToken_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // DeleteTokensByUserID provides a mock function with given fields: ctx, userID
 func (_m *ITokenRepository) DeleteTokensByUserID(ctx context.Context, userID string) error {
 	ret := _m.Called(ctx, userID)
@@ -85,35 +48,6 @@ func (_m *ITokenRepository) DeleteTokensByUserID(ctx context.Context, userID str
 	}
 
 	return r0
-}
-
-// ITokenRepository_DeleteTokensByUserID_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteTokensByUserID'
-type ITokenRepository_DeleteTokensByUserID_Call struct {
-	*mock.Call
-}
-
-// DeleteTokensByUserID is a helper method to define mock.On call
-//   - ctx context.Context
-//   - userID string
-func (_e *ITokenRepository_Expecter) DeleteTokensByUserID(ctx interface{}, userID interface{}) *ITokenRepository_DeleteTokensByUserID_Call {
-	return &ITokenRepository_DeleteTokensByUserID_Call{Call: _e.mock.On("DeleteTokensByUserID", ctx, userID)}
-}
-
-func (_c *ITokenRepository_DeleteTokensByUserID_Call) Run(run func(ctx context.Context, userID string)) *ITokenRepository_DeleteTokensByUserID_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string))
-	})
-	return _c
-}
-
-func (_c *ITokenRepository_DeleteTokensByUserID_Call) Return(_a0 error) *ITokenRepository_DeleteTokensByUserID_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *ITokenRepository_DeleteTokensByUserID_Call) RunAndReturn(run func(context.Context, string) error) *ITokenRepository_DeleteTokensByUserID_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // FindByRefreshToken provides a mock function with given fields: ctx, refreshToken
@@ -144,35 +78,6 @@ func (_m *ITokenRepository) FindByRefreshToken(ctx context.Context, refreshToken
 	return r0, r1
 }
 
-// ITokenRepository_FindByRefreshToken_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'FindByRefreshToken'
-type ITokenRepository_FindByRefreshToken_Call struct {
-	*mock.Call
-}
-
-// FindByRefreshToken is a helper method to define mock.On call
-//   - ctx context.Context
-//   - refreshToken string
-func (_e *ITokenRepository_Expecter) FindByRefreshToken(ctx interface{}, refreshToken interface{}) *ITokenRepository_FindByRefreshToken_Call {
-	return &ITokenRepository_FindByRefreshToken_Call{Call: _e.mock.On("FindByRefreshToken", ctx, refreshToken)}
-}
-
-func (_c *ITokenRepository_FindByRefreshToken_Call) Run(run func(ctx context.Context, refreshToken string)) *ITokenRepository_FindByRefreshToken_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string))
-	})
-	return _c
-}
-
-func (_c *ITokenRepository_FindByRefreshToken_Call) Return(_a0 userpkg.Token, _a1 error) *ITokenRepository_FindByRefreshToken_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *ITokenRepository_FindByRefreshToken_Call) RunAndReturn(run func(context.Context, string) (userpkg.Token, error)) *ITokenRepository_FindByRefreshToken_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // StoreToken provides a mock function with given fields: ctx, token
 func (_m *ITokenRepository) StoreToken(ctx context.Context, token userpkg.Token) error {
 	ret := _m.Called(ctx, token)
@@ -189,35 +94,6 @@ func (_m *ITokenRepository) StoreToken(ctx context.Context, token userpkg.Token)
 	}
 
 	return r0
-}
-
-// ITokenRepository_StoreToken_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'StoreToken'
-type ITokenRepository_StoreToken_Call struct {
-	*mock.Call
-}
-
-// StoreToken is a helper method to define mock.On call
-//   - ctx context.Context
-//   - token userpkg.Token
-func (_e *ITokenRepository_Expecter) StoreToken(ctx interface{}, token interface{}) *ITokenRepository_StoreToken_Call {
-	return &ITokenRepository_StoreToken_Call{Call: _e.mock.On("StoreToken", ctx, token)}
-}
-
-func (_c *ITokenRepository_StoreToken_Call) Run(run func(ctx context.Context, token userpkg.Token)) *ITokenRepository_StoreToken_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(userpkg.Token))
-	})
-	return _c
-}
-
-func (_c *ITokenRepository_StoreToken_Call) Return(_a0 error) *ITokenRepository_StoreToken_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *ITokenRepository_StoreToken_Call) RunAndReturn(run func(context.Context, userpkg.Token) error) *ITokenRepository_StoreToken_Call {
-	_c.Call.Return(run)
-	return _c
 }
 
 // NewITokenRepository creates a new instance of ITokenRepository. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

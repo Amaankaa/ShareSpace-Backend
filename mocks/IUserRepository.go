@@ -70,6 +70,34 @@ func (_m *IUserRepository) CreateUser(ctx context.Context, user userpkg.User) (u
 	return r0, r1
 }
 
+// ExistsByDisplayName provides a mock function with given fields: ctx, displayName
+func (_m *IUserRepository) ExistsByDisplayName(ctx context.Context, displayName string) (bool, error) {
+	ret := _m.Called(ctx, displayName)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ExistsByDisplayName")
+	}
+
+	var r0 bool
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (bool, error)); ok {
+		return rf(ctx, displayName)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) bool); ok {
+		r0 = rf(ctx, displayName)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, displayName)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // ExistsByEmail provides a mock function with given fields: ctx, email
 func (_m *IUserRepository) ExistsByEmail(ctx context.Context, email string) (bool, error) {
 	ret := _m.Called(ctx, email)
@@ -154,6 +182,94 @@ func (_m *IUserRepository) FindByID(ctx context.Context, userID string) (userpkg
 	return r0, r1
 }
 
+// FindMentees provides a mock function with given fields: ctx, topics, limit, offset
+func (_m *IUserRepository) FindMentees(ctx context.Context, topics []string, limit int, offset int) ([]userpkg.PublicProfile, error) {
+	ret := _m.Called(ctx, topics, limit, offset)
+
+	if len(ret) == 0 {
+		panic("no return value specified for FindMentees")
+	}
+
+	var r0 []userpkg.PublicProfile
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, []string, int, int) ([]userpkg.PublicProfile, error)); ok {
+		return rf(ctx, topics, limit, offset)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, []string, int, int) []userpkg.PublicProfile); ok {
+		r0 = rf(ctx, topics, limit, offset)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]userpkg.PublicProfile)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, []string, int, int) error); ok {
+		r1 = rf(ctx, topics, limit, offset)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// FindMentors provides a mock function with given fields: ctx, topics, limit, offset
+func (_m *IUserRepository) FindMentors(ctx context.Context, topics []string, limit int, offset int) ([]userpkg.PublicProfile, error) {
+	ret := _m.Called(ctx, topics, limit, offset)
+
+	if len(ret) == 0 {
+		panic("no return value specified for FindMentors")
+	}
+
+	var r0 []userpkg.PublicProfile
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, []string, int, int) ([]userpkg.PublicProfile, error)); ok {
+		return rf(ctx, topics, limit, offset)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, []string, int, int) []userpkg.PublicProfile); ok {
+		r0 = rf(ctx, topics, limit, offset)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]userpkg.PublicProfile)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, []string, int, int) error); ok {
+		r1 = rf(ctx, topics, limit, offset)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetPublicProfile provides a mock function with given fields: ctx, userID
+func (_m *IUserRepository) GetPublicProfile(ctx context.Context, userID string) (userpkg.PublicProfile, error) {
+	ret := _m.Called(ctx, userID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetPublicProfile")
+	}
+
+	var r0 userpkg.PublicProfile
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (userpkg.PublicProfile, error)); ok {
+		return rf(ctx, userID)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) userpkg.PublicProfile); ok {
+		r0 = rf(ctx, userID)
+	} else {
+		r0 = ret.Get(0).(userpkg.PublicProfile)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, userID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetUserByLogin provides a mock function with given fields: ctx, login
 func (_m *IUserRepository) GetUserByLogin(ctx context.Context, login string) (userpkg.User, error) {
 	ret := _m.Called(ctx, login)
@@ -203,6 +319,36 @@ func (_m *IUserRepository) GetUserProfile(ctx context.Context, userID string) (u
 
 	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
 		r1 = rf(ctx, userID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// SearchUsersByTopic provides a mock function with given fields: ctx, topic, isMentor, limit, offset
+func (_m *IUserRepository) SearchUsersByTopic(ctx context.Context, topic string, isMentor bool, limit int, offset int) ([]userpkg.PublicProfile, error) {
+	ret := _m.Called(ctx, topic, isMentor, limit, offset)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SearchUsersByTopic")
+	}
+
+	var r0 []userpkg.PublicProfile
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, bool, int, int) ([]userpkg.PublicProfile, error)); ok {
+		return rf(ctx, topic, isMentor, limit, offset)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string, bool, int, int) []userpkg.PublicProfile); ok {
+		r0 = rf(ctx, topic, isMentor, limit, offset)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]userpkg.PublicProfile)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string, bool, int, int) error); ok {
+		r1 = rf(ctx, topic, isMentor, limit, offset)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -274,24 +420,6 @@ func (_m *IUserRepository) UpdateProfile(ctx context.Context, userID string, upd
 	return r0, r1
 }
 
-// UpdateUserRoleByID provides a mock function with given fields: ctx, userID, role
-func (_m *IUserRepository) UpdateUserRoleByID(ctx context.Context, userID string, role string) error {
-	ret := _m.Called(ctx, userID, role)
-
-	if len(ret) == 0 {
-		panic("no return value specified for UpdateUserRoleByID")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
-		r0 = rf(ctx, userID, role)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
 // UpdateRoleAndPromoter provides a mock function with given fields: ctx, userID, role, promoterID
 func (_m *IUserRepository) UpdateRoleAndPromoter(ctx context.Context, userID string, role string, promoterID *string) error {
 	ret := _m.Called(ctx, userID, role, promoterID)
@@ -303,6 +431,24 @@ func (_m *IUserRepository) UpdateRoleAndPromoter(ctx context.Context, userID str
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, string, string, *string) error); ok {
 		r0 = rf(ctx, userID, role, promoterID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// UpdateUserRoleByID provides a mock function with given fields: ctx, userID, role
+func (_m *IUserRepository) UpdateUserRoleByID(ctx context.Context, userID string, role string) error {
+	ret := _m.Called(ctx, userID, role)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateUserRoleByID")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
+		r0 = rf(ctx, userID, role)
 	} else {
 		r0 = ret.Error(0)
 	}

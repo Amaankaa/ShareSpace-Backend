@@ -11,6 +11,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type UserRepository struct {
@@ -163,40 +164,212 @@ func (ur *UserRepository) UpdateIsVerifiedByEmail(ctx context.Context, email str
 
 func (ur *UserRepository) UpdateProfile(ctx context.Context, userID string, updates userpkg.UpdateProfileRequest) (userpkg.User, error) {
 	oid, err := primitive.ObjectIDFromHex(userID)
-    if err != nil {
-        return userpkg.User{}, err
-    }
-    updateDoc := bson.M{
-        "$set": bson.M{
-            "updatedAt": time.Now(),
-        },
-    }
-    if updates.Fullname != "" {
-        updateDoc["$set"].(bson.M)["fullname"] = updates.Fullname
-    }
-    if updates.Bio != "" {
-        updateDoc["$set"].(bson.M)["bio"] = updates.Bio
-    }
-    if updates.ProfilePicture != "" {
-        updateDoc["$set"].(bson.M)["profilePicture"] = updates.ProfilePicture
-    }
+	if err != nil {
+		return userpkg.User{}, err
+	}
+	updateDoc := bson.M{
+		"$set": bson.M{
+			"updatedAt": time.Now(),
+		},
+	}
+	if updates.Fullname != "" {
+		updateDoc["$set"].(bson.M)["fullname"] = updates.Fullname
+	}
+	if updates.Bio != "" {
+		updateDoc["$set"].(bson.M)["bio"] = updates.Bio
+	}
+	if updates.ProfilePicture != "" {
+		updateDoc["$set"].(bson.M)["profilePicture"] = updates.ProfilePicture
+	}
 	// Only update contactInfo if it is not empty
-    if !reflect.DeepEqual(updates.ContactInfo, userpkg.ContactInfo{}) {
-        updateDoc["$set"].(bson.M)["contactInfo"] = updates.ContactInfo
-    }
+	if !reflect.DeepEqual(updates.ContactInfo, userpkg.ContactInfo{}) {
+		updateDoc["$set"].(bson.M)["contactInfo"] = updates.ContactInfo
+	}
 	filter := bson.M{"_id": oid}
-    _, err = ur.collection.UpdateOne(ctx, filter, updateDoc)
-    if err != nil {
-        return userpkg.User{}, err
-    }
-    return ur.FindByID(ctx, userID)
+	_, err = ur.collection.UpdateOne(ctx, filter, updateDoc)
+	if err != nil {
+		return userpkg.User{}, err
+	}
+	return ur.FindByID(ctx, userID)
 }
 
 func (ur *UserRepository) GetUserProfile(ctx context.Context, userID string) (userpkg.User, error) {
-    user, err := ur.FindByID(ctx, userID)
-    if err != nil {
-        return userpkg.User{}, err
-    }
-    user.Password = "" // Don't return password
-    return user, nil
+	user, err := ur.FindByID(ctx, userID)
+	if err != nil {
+		return userpkg.User{}, err
+	}
+	user.Password = "" // Don't return password
+	return user, nil
+}
+
+// ShareSpace-specific methods
+
+// Check if display name exists
+func (ur *UserRepository) ExistsByDisplayName(ctx context.Context, displayName string) (bool, error) {
+	var user userpkg.User
+	err := ur.collection.FindOne(ctx, bson.M{"displayName": displayName}).Decode(&user)
+	if err == mongo.ErrNoDocuments {
+		return false, nil
+	}
+	if err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
+// Get public profile respecting privacy settings
+func (ur *UserRepository) GetPublicProfile(ctx context.Context, userID string) (userpkg.PublicProfile, error) {
+	objectID, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		return userpkg.PublicProfile{}, errors.New("invalid user ID")
+	}
+
+	var user userpkg.User
+	err = ur.collection.FindOne(ctx, bson.M{"_id": objectID}).Decode(&user)
+	if err != nil {
+		return userpkg.PublicProfile{}, err
+	}
+
+	// Build public profile respecting privacy settings
+	profile := userpkg.PublicProfile{
+		ID:                    user.ID,
+		DisplayName:           user.DisplayName,
+		Bio:                   user.Bio,
+		IsMentor:              user.IsMentor,
+		IsMentee:              user.IsMentee,
+		MentorshipTopics:      user.MentorshipTopics,
+		MentorshipBio:         user.MentorshipBio,
+		AvailableForMentoring: user.AvailableForMentoring,
+	}
+
+	// Include private information only if privacy settings allow
+	if user.PrivacySettings.ShowRealName {
+		profile.Fullname = user.Fullname
+	}
+	if user.PrivacySettings.ShowProfilePicture {
+		profile.ProfilePicture = user.ProfilePicture
+	}
+	if user.PrivacySettings.ShowContactInfo {
+		profile.ContactInfo = user.ContactInfo
+	}
+
+	return profile, nil
+}
+
+// Find mentors by topics with pagination
+func (ur *UserRepository) FindMentors(ctx context.Context, topics []string, limit int, offset int) ([]userpkg.PublicProfile, error) {
+	filter := bson.M{
+		"isMentor":              true,
+		"availableForMentoring": true,
+		"mentorshipTopics":      bson.M{"$in": topics},
+	}
+
+	opts := options.Find().SetLimit(int64(limit)).SetSkip(int64(offset))
+	cursor, err := ur.collection.Find(ctx, filter, opts)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	var profiles []userpkg.PublicProfile
+	for cursor.Next(ctx) {
+		var user userpkg.User
+		if err := cursor.Decode(&user); err != nil {
+			return nil, err
+		}
+
+		profile := ur.buildPublicProfile(user)
+		profiles = append(profiles, profile)
+	}
+
+	return profiles, cursor.Err()
+}
+
+// Find mentees by topics with pagination
+func (ur *UserRepository) FindMentees(ctx context.Context, topics []string, limit int, offset int) ([]userpkg.PublicProfile, error) {
+	filter := bson.M{
+		"isMentee":         true,
+		"mentorshipTopics": bson.M{"$in": topics},
+	}
+
+	opts := options.Find().SetLimit(int64(limit)).SetSkip(int64(offset))
+	cursor, err := ur.collection.Find(ctx, filter, opts)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	var profiles []userpkg.PublicProfile
+	for cursor.Next(ctx) {
+		var user userpkg.User
+		if err := cursor.Decode(&user); err != nil {
+			return nil, err
+		}
+
+		profile := ur.buildPublicProfile(user)
+		profiles = append(profiles, profile)
+	}
+
+	return profiles, cursor.Err()
+}
+
+// Search users by specific topic and mentor/mentee status
+func (ur *UserRepository) SearchUsersByTopic(ctx context.Context, topic string, isMentor bool, limit int, offset int) ([]userpkg.PublicProfile, error) {
+	filter := bson.M{
+		"mentorshipTopics": topic,
+	}
+
+	if isMentor {
+		filter["isMentor"] = true
+		filter["availableForMentoring"] = true
+	} else {
+		filter["isMentee"] = true
+	}
+
+	opts := options.Find().SetLimit(int64(limit)).SetSkip(int64(offset))
+	cursor, err := ur.collection.Find(ctx, filter, opts)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	var profiles []userpkg.PublicProfile
+	for cursor.Next(ctx) {
+		var user userpkg.User
+		if err := cursor.Decode(&user); err != nil {
+			return nil, err
+		}
+
+		profile := ur.buildPublicProfile(user)
+		profiles = append(profiles, profile)
+	}
+
+	return profiles, cursor.Err()
+}
+
+// Helper function to build public profile from user
+func (ur *UserRepository) buildPublicProfile(user userpkg.User) userpkg.PublicProfile {
+	profile := userpkg.PublicProfile{
+		ID:                    user.ID,
+		DisplayName:           user.DisplayName,
+		Bio:                   user.Bio,
+		IsMentor:              user.IsMentor,
+		IsMentee:              user.IsMentee,
+		MentorshipTopics:      user.MentorshipTopics,
+		MentorshipBio:         user.MentorshipBio,
+		AvailableForMentoring: user.AvailableForMentoring,
+	}
+
+	// Include private information only if privacy settings allow
+	if user.PrivacySettings.ShowRealName {
+		profile.Fullname = user.Fullname
+	}
+	if user.PrivacySettings.ShowProfilePicture {
+		profile.ProfilePicture = user.ProfilePicture
+	}
+	if user.PrivacySettings.ShowContactInfo {
+		profile.ContactInfo = user.ContactInfo
+	}
+
+	return profile
 }
