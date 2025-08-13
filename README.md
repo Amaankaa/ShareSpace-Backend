@@ -1,69 +1,161 @@
-# 📝 G6 Blog Starter Project
+# ShareSpace
 
-The **G6 Blog Starter** is a backend API built to power a feature-rich blogging platform. It supports user management, blog post operations, advanced search and filtering, AI content suggestions, and role-based access control — all built with performance and scalability in mind.
+ShareSpace is a web platform designed to connect junior university students with senior students and mentors, helping them navigate academic, financial, and relationship challenges. It also provides curated resources and a supportive community for mental health and personal growth.
 
 ---
 
 ## 🚀 Features
 
-- 🔐 **User Authentication & Authorization** (JWT-based, with refresh tokens)  
-- 👤 **User Roles** (Admin & User, with role promotion/demotion)  
-- 📝 **Blog CRUD** (Create, Read with pagination/search/filter, Update, Delete)  
-- 🧠 **AI-Powered Blog Suggestions** based on keywords or topics  
-- 📈 **Popularity Tracking** (views, likes/dislikes, comments)  
-- 🔍 **Advanced Blog Filtering** (by tags, date, or popularity)  
-- 📬 **Forgot Password + Reset via Email**  
-- 🧾 **Profile Management** (bio, profile picture, contact info)
+### User Management
+
+* User registration & login (JWT-based authentication)
+* Forgot password & OTP verification
+* Role-based access (User, Admin, Mentor)
+* Promote/Demote user roles (admin only)
+
+### Mentorship
+
+* Send & manage mentorship requests
+* Accept/Reject connections
+* View active mentorship relationships
+
+### Discussion Board
+
+* Create, view, edit, and delete posts
+* Comment & like functionality
+* Category-based filtering
+
+### Resource Sharing
+
+* Share documents, links, and guides
+* Search & browse resources
+
+### Messaging
+
+* One-to-one real-time chat between mentor & mentee
+* Message history storage
+
+### Mental Health Support
+
+* Curated articles
+* Option to book counseling/mentorship sessions
 
 ---
 
-## ⚙️ API Design Goals
+## 🛠️ Tech Stack
 
-- RESTful and intuitive endpoints  
-- Secure user auth with hashed passwords (`bcrypt`)  
-- Token-based session handling with access & refresh token flows  
-- Clean role-based permission handling (RBAC via middleware)  
-- Full Postman API documentation with examples and error responses  
-- Lightweight, fast, and concurrent using Go’s `goroutines` & `sync` patterns
+**Frontend**
 
----
+* React (TypeScript)
+* TailwindCSS
+* React Query (API data fetching)
+* Axios (HTTP client)
 
-## 🧠 AI Integration
+**Backend**
 
-Integrates a basic AI assistant that allows users to:  
-- Get content suggestions for their blogs  
-- Generate full blog outlines based on input topics or keywords
+* Go (Golang)
+* MongoDB
+* Gin/Fiber (HTTP framework)
+* JWT (Authentication)
+* Clean Architecture
 
----
+**Other Tools**
 
-## 📦 Tech Stack
-
-- **Language:** Go (Golang)  
-- **Database:** MongoDB (or any pluggable DB)  
-- **Auth:** JWT (Access & Refresh Tokens)  
-- **AI Integration:** Placeholder AI endpoint for future LLM integrations  
-- **Docs:** Postman collection with example requests/responses
+* Docker (Containerization)
+* GitHub Actions (CI/CD)
+* WebSockets (Real-time messaging)
 
 ---
 
-## 📌 Non-Functional Highlights
+## 📚 Project Structure (Backend - Clean Architecture)
 
-- ⚡ **High Performance:** Optimized queries, paginated responses  
-- 🔒 **Security:** `bcrypt` password hashing, JWT token validation  
-- ⚖️ **Scalability:** Built with Go’s concurrency model  
-- 🧰 **Maintainability:** Clean architecture with clear separation of concerns
+```
+ShareSpace/
+│── Delivery/           # HTTP handlers/controllers
+│── Domain/             # Entities & interfaces
+│── Infrastructure/     # MongoDB, email service, etc.
+│── Repositories/       # DB repository implementations
+│── Usecases/           # Business logic
+│── main.go              # App entry point
+```
 
 ---
 
-## 📖 Project Status
+## 💾 Installation & Setup
 
-This is a starter template meant to kickstart the development of scalable blog platforms. Ideal for learning advanced Go practices or rapid prototyping.
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/your-username/sharespace.git
+cd sharespace
+```
+
+### 2. Backend Setup
+
+```bash
+cd backend
+cp .env.example .env   # Add your MongoDB URI, JWT secret, etc.
+go mod tidy
+go run main.go
+```
+
+### 3. Frontend Setup
+
+```bash
+cd frontend
+cp .env.example .env   # Add your API base URL, WebSocket URL, etc.
+npm install
+npm run dev
+```
 
 ---
 
-## 📄 API Docs
+## 🤚 Running Tests
 
-All endpoints are fully documented in Postman and include:  
-- ✅ Request and response samples  
-- ❌ Error handling scenarios  
-- 🔑 Role-based access details
+**Backend**
+
+```bash
+cd backend
+go test ./...
+```
+
+**Frontend**
+
+```bash
+cd frontend
+npm run test
+```
+
+---
+
+## 🚀 Deployment
+
+Using Docker:
+
+```bash
+docker-compose up --build
+```
+
+---
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch:
+
+   ```bash
+   git checkout -b feature-name
+   ```
+3. Commit changes and push:
+
+   ```bash
+   git commit -m "Add feature"
+   git push origin feature-name
+   ```
+4. Open a pull request
+
+---
+
+## 📜 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
