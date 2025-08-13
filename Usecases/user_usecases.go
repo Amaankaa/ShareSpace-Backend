@@ -516,7 +516,6 @@ func (u *UserUsecase) GenerateDisplayName(ctx context.Context, baseName string) 
 	}
 
 	// If all numbers are taken, add random suffix
-	rand.Seed(time.Now().UnixNano())
 	randomSuffix := rand.Intn(9999)
 	return fmt.Sprintf("%s%d", cleanBase, randomSuffix), nil
 }
