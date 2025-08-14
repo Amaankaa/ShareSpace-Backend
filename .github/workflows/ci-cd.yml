@@ -6,6 +6,11 @@ on:
   pull_request:
     branches: [ main, develop ]
 
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+
 env:
   GO_VERSION: '1.24'
 
@@ -95,14 +100,18 @@ jobs:
     - name: Install and run Gosec
       run: |
         go install github.com/securego/gosec/v2/cmd/gosec@latest
-        gosec -fmt sarif -out gosec.sarif ./... || echo "Security scan completed with findings"
+        echo "Running security scan..."
+        gosec -fmt json -out gosec-report.json ./... || echo "Security scan completed"
 
-    - name: Upload SARIF file
-      uses: github/codeql-action/upload-sarif@v3
-      with:
-        sarif_file: gosec.sarif
-      if: always()
-      continue-on-error: true
+    - name: Display security scan results
+      run: |
+        echo "Security scan results:"
+        if [ -f gosec-report.json ]; then
+          echo "Found $(cat gosec-report.json | jq '.Issues | length // 0') security issues"
+          cat gosec-report.json | jq '.Issues[] | {rule: .rule_id, severity: .severity, file: .file, line: .line, details: .details}' || echo "No issues found"
+        else
+          echo "No security report generated"
+        fi
 
   # Docker Build and Push
   docker-build:
