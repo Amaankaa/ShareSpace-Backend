@@ -18,9 +18,9 @@ import (
 )
 
 func main() {
-	// Load environment variables
+	// Load environment variables (optional for production)
 	if err := godotenv.Load(); err != nil {
-		log.Fatal("Error loading .env file")
+		log.Println("No .env file found, using environment variables")
 	}
 
 	uri := os.Getenv("MONGODB_URI")

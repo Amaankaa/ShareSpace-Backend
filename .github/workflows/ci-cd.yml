@@ -163,86 +163,30 @@ jobs:
         cache-from: type=gha
         cache-to: type=gha,mode=max
 
-  # Deploy to Staging
-  deploy-staging:
+  # Deploy to Render (Automatic via Git)
+  deploy-notification:
     runs-on: ubuntu-latest
-    needs: docker-build
-    if: github.ref == 'refs/heads/develop'
-    environment: staging
+    needs: [test-and-build, security-scan]
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Setup SSH
-      uses: webfactory/ssh-agent@v0.8.0
-      with:
-        ssh-private-key: ${{ secrets.STAGING_SSH_KEY }}
-
-    - name: Deploy to staging server
+    - name: Deployment notification
       run: |
-        ssh -o StrictHostKeyChecking=no ${{ secrets.STAGING_USER }}@${{ secrets.STAGING_HOST }} << 'EOF'
-          cd /opt/sharespace
-          docker-compose -f docker-compose.staging.yml pull
-          docker-compose -f docker-compose.staging.yml up -d
-          docker system prune -f
-        EOF
+        echo "🚀 Code pushed to ${{ github.ref_name }} branch"
+        echo "📦 Render will automatically deploy from this commit"
+        echo "🔗 Check deployment status at: https://dashboard.render.com"
 
-    - name: Run health check
+    - name: Wait for deployment
       run: |
-        sleep 30
-        curl -f ${{ secrets.STAGING_URL }}/health || exit 1
+        echo "⏳ Waiting 60 seconds for Render deployment..."
+        sleep 60
 
-  # Deploy to Production
-  deploy-production:
-    runs-on: ubuntu-latest
-    needs: docker-build
-    if: github.ref == 'refs/heads/main'
-    environment: production
-
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Setup SSH
-      uses: webfactory/ssh-agent@v0.8.0
-      with:
-        ssh-private-key: ${{ secrets.PRODUCTION_SSH_KEY }}
-
-    - name: Deploy to production server
+    - name: Health check
       run: |
-        ssh -o StrictHostKeyChecking=no ${{ secrets.PRODUCTION_USER }}@${{ secrets.PRODUCTION_HOST }} << 'EOF'
-          cd /opt/sharespace
-          # Backup database before deployment
-          docker exec sharespace_mongodb mongodump --out /backups/$(date +%Y%m%d_%H%M%S)
-
-          # Deploy new version
-          docker-compose -f docker-compose.prod.yml pull
-          docker-compose -f docker-compose.prod.yml up -d
-          docker system prune -f
-        EOF
-
-    - name: Run health check
-      run: |
-        sleep 30
-        curl -f ${{ secrets.PRODUCTION_URL }}/health || exit 1
-
-    - name: Run smoke tests
-      run: |
-        # Add smoke tests here
-        echo "Running smoke tests..."
-
-  # Notification
-  notify:
-    runs-on: ubuntu-latest
-    needs: [deploy-staging, deploy-production]
-    if: always()
-    
-    steps:
-    - name: Notify deployment status
-      uses: 8398a7/action-slack@v3
-      with:
-        status: ${{ job.status }}
-        channel: '#deployments'
-        webhook_url: ${{ secrets.SLACK_WEBHOOK }}
-      if: always()
+        if [ "${{ github.ref_name }}" = "main" ]; then
+          echo "🏥 Checking production health..."
+          curl -f ${{ secrets.RENDER_PRODUCTION_URL }}/health || echo "❌ Production health check failed"
+        elif [ "${{ github.ref_name }}" = "develop" ]; then
+          echo "🏥 Checking staging health..."
+          curl -f ${{ secrets.RENDER_STAGING_URL }}/health || echo "❌ Staging health check failed"
+        fi
