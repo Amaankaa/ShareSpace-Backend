@@ -54,15 +54,15 @@ func (s *passwordResetRepoTestSuite) SetupSuite() {
 }
 
 func (s *passwordResetRepoTestSuite) TearDownSuite() {
-	s.resetCollection.Drop(s.ctx)
-	s.userCollection.Drop(s.ctx)
+	_ = s.resetCollection.Drop(s.ctx)
+	_ = s.userCollection.Drop(s.ctx)
 	s.cancel()
-	s.client.Disconnect(s.ctx)
+	_ = s.client.Disconnect(s.ctx)
 }
 
 func (s *passwordResetRepoTestSuite) SetupTest() {
-	s.resetCollection.DeleteMany(s.ctx, bson.M{})
-	s.userCollection.DeleteMany(s.ctx, bson.M{})
+	_, _ = s.resetCollection.DeleteMany(s.ctx, bson.M{})
+	_, _ = s.userCollection.DeleteMany(s.ctx, bson.M{})
 }
 
 func (s *passwordResetRepoTestSuite) TestStoreAndGetResetRequest() {
@@ -97,7 +97,7 @@ func (s *passwordResetRepoTestSuite) TestIncrementAttemptCount() {
 		ExpiresAt:    time.Now().Add(10 * time.Minute),
 		AttemptCount: 1,
 	}
-	s.resetRepo.StoreResetRequest(s.ctx, reset)
+	_ = s.resetRepo.StoreResetRequest(s.ctx, reset)
 
 	err := s.resetRepo.IncrementAttemptCount(s.ctx, reset.Email)
 	assert.NoError(err)
@@ -116,7 +116,7 @@ func (s *passwordResetRepoTestSuite) TestDeleteResetRequest() {
 		ExpiresAt:    time.Now().Add(5 * time.Minute),
 		AttemptCount: 0,
 	}
-	s.resetRepo.StoreResetRequest(s.ctx, reset)
+	_ = s.resetRepo.StoreResetRequest(s.ctx, reset)
 
 	err := s.resetRepo.DeleteResetRequest(s.ctx, reset.Email)
 	assert.NoError(err)

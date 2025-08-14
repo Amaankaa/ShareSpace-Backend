@@ -62,7 +62,7 @@ func (s *mentorshipRepositoryTestSuite) TearDownSuite() {
 	err := s.client.Database("test_mentorship_db").Drop(cleanupCtx)
 	s.Require().NoError(err)
 
-	s.client.Disconnect(cleanupCtx)
+	_ = s.client.Disconnect(cleanupCtx)
 	s.cancel()
 }
 

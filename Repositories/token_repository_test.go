@@ -13,9 +13,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 const testTokenCollection = "test_tokens"
@@ -53,9 +53,9 @@ func (s *tokenRepositoryTestSuite) SetupSuite() {
 }
 
 func (s *tokenRepositoryTestSuite) TearDownSuite() {
-	s.collection.Drop(s.ctx)
+	_ = s.collection.Drop(s.ctx)
 	s.cancel()
-	s.client.Disconnect(s.ctx)
+	_ = s.client.Disconnect(s.ctx)
 }
 
 func (s *tokenRepositoryTestSuite) SetupTest() {
