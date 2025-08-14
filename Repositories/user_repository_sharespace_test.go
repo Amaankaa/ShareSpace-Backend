@@ -34,7 +34,7 @@ func TestUserShareSpaceTestSuite(t *testing.T) {
 func (s *userShareSpaceTestSuite) SetupSuite() {
 	err := godotenv.Load("../.env")
 	if err != nil {
-		log.Fatal("Error loading .env file")
+		log.Println("No .env file found, using environment variables")
 	}
 
 	mongoURI := os.Getenv("MONGODB_URI")

@@ -38,7 +38,7 @@ func TestPasswordResetRepoTestSuite(t *testing.T) {
 func (s *passwordResetRepoTestSuite) SetupSuite() {
 	err := godotenv.Load("../.env")
 	if err != nil {
-		log.Fatal("Error loading .env file")
+		log.Println("No .env file found, using environment variables")
 	}
 
 	uri := os.Getenv("MONGODB_URI")
