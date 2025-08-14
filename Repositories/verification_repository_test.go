@@ -56,9 +56,9 @@ func (s *verificationRepoTestSuite) SetupSuite() {
 }
 
 func (s *verificationRepoTestSuite) TearDownSuite() {
-	s.collection.Drop(s.ctx)
+	_ = s.collection.Drop(s.ctx)
 	s.cancel()
-	s.client.Disconnect(s.ctx)
+	_ = s.client.Disconnect(s.ctx)
 }
 
 func (s *verificationRepoTestSuite) SetupTest() {

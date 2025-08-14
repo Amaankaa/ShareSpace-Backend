@@ -55,9 +55,9 @@ func (s *userRepositoryTestSuite) SetupSuite() {
 }
 
 func (s *userRepositoryTestSuite) TearDownSuite() {
-	s.collection.Drop(s.ctx)
+	_ = s.collection.Drop(s.ctx)
 	s.cancel()
-	s.client.Disconnect(s.ctx)
+	_ = s.client.Disconnect(s.ctx)
 }
 
 func (s *userRepositoryTestSuite) SetupTest() {
