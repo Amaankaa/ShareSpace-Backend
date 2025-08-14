@@ -41,8 +41,9 @@ jobs:
         path: |
           ~/.cache/go-build
           ~/go/pkg/mod
-        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}-${{ github.run_id }}
         restore-keys: |
+          ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
           ${{ runner.os }}-go-
 
     - name: Install dependencies
@@ -76,9 +77,14 @@ jobs:
         echo "GEMINI_API_KEY=test-api-key" >> .env
         echo "GEMINI_API_URL=https://test-api-url.com" >> .env
 
+    - name: Clean test artifacts
+      run: |
+        rm -f coverage.out coverage.html
+        go clean -testcache
+
     - name: Run tests
       run: |
-        go test -v -race -coverprofile=coverage.out ./...
+        go test -v -coverprofile=coverage.out ./...
         go tool cover -html=coverage.out -o coverage.html
 
     - name: Upload coverage reports
