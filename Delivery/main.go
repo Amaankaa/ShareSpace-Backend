@@ -42,6 +42,7 @@ func main() {
 	tokenCollection := db.Collection("tokens")
 	passwordResetCollection := db.Collection("password_resets")
 	verificationCollection := db.Collection("verifications")
+	postCollection := db.Collection("posts")
 
 	// Initialize infrastructure services
 	passwordService := infrastructure.NewPasswordService()
@@ -57,7 +58,7 @@ func main() {
 	cloudName := os.Getenv("CLOUDINARY_CLOUD_NAME")
 	cloudAPIKey := os.Getenv("CLOUDINARY_API_KEY")
 	cloudAPISecret := os.Getenv("CLOUDINARY_API_SECRET")
-	
+
 	if cloudName == "" || cloudAPIKey == "" || cloudAPISecret == "" {
 		log.Fatal("Cloudinary credentials not set in environment")
 	}
@@ -72,6 +73,7 @@ func main() {
 	userRepo := repositories.NewUserRepository(userCollection)
 	tokenRepo := repositories.NewTokenRepository(tokenCollection)
 	passwordResetRepo := repositories.NewPasswordResetRepo(passwordResetCollection, userCollection)
+	postRepo := repositories.NewPostRepository(postCollection)
 	//AI configuration
 	aiAPIKey := os.Getenv("GEMINI_API_KEY")
 	if aiAPIKey == "" {
@@ -95,9 +97,11 @@ func main() {
 		verificationRepo,
 		cloudinaryService,
 	)
+	postUsecase := usecases.NewPostUsecase(postRepo, userRepo)
 
-	//Controller
-	controller := controllers.NewController(userUsecase)
+	//Controllers
+	postController := controllers.NewPostController(postUsecase)
+	controller := controllers.NewController(userUsecase, postController)
 
 	// Initialize AuthMiddleware
 	authMiddleware := infrastructure.NewAuthMiddleware(jwtService)

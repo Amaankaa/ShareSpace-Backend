@@ -40,6 +40,22 @@ func SetupRouter(controller *controllers.Controller, authMiddleware *infrastruct
 	protected.GET("/profile", controller.GetProfile)
 	protected.PUT("/profile", controller.UpdateProfile)
 
+	// Posts routes (protected)
+	protected.POST("/posts", controller.PostController.CreatePost)
+	protected.PATCH("/posts/:id", controller.PostController.UpdatePost)
+	protected.DELETE("/posts/:id", controller.PostController.DeletePost)
+	protected.POST("/posts/:id/like", controller.PostController.LikePost)
+	protected.DELETE("/posts/:id/like", controller.PostController.UnlikePost)
+
+	// Posts routes (public - can be viewed without authentication, but with optional user context)
+	r.GET("/posts", controller.PostController.GetPosts)
+	r.GET("/posts/search", controller.PostController.SearchPosts)
+	r.GET("/posts/popular", controller.PostController.GetPopularPosts)
+	r.GET("/posts/trending-tags", controller.PostController.GetTrendingTags)
+	r.GET("/posts/:id", controller.PostController.GetPost)
+	r.GET("/posts/category/:category", controller.PostController.GetPostsByCategory)
+	r.GET("/users/:userId/posts", controller.PostController.GetUserPosts)
+
 	// Admin routes for user promotion and demotion
 	admin := protected.Group("")
 	admin.Use(authMiddleware.AdminOnly())
