@@ -61,6 +61,10 @@ func (s *ResourceControllerTestSuite) SetupTest() {
 	s.router.GET("/users/:id/resources", s.controller.GetUserResources)
 	s.router.GET("/users/:id/resources/liked", s.controller.GetUserLikedResources)
 	s.router.GET("/users/:id/resources/bookmarked", s.controller.GetUserBookmarkedResources)
+	s.router.GET("/resources/:id/analytics", s.controller.GetResourceAnalytics)
+	s.router.GET("/users/:id/resources/stats", s.controller.GetUserResourceStats)
+	s.router.POST("/resources/:id/report", s.controller.ReportResource)
+	s.router.POST("/resources/:id/verify", s.controller.VerifyResource)
 }
 
 func (s *ResourceControllerTestSuite) TearDownTest() {
@@ -412,4 +416,125 @@ func (s *ResourceControllerTestSuite) TestGetUserBookmarkedResources_Success() {
 func (s *ResourceControllerTestSuite) TestGetUserBookmarkedResources_InvalidUserID() {
 	w := s.performRequest("GET", "/users/invalid/resources/bookmarked", nil, nil)
 	s.Equal(http.StatusBadRequest, w.Code)
+}
+
+func (s *ResourceControllerTestSuite) TestGetResourceAnalytics_Success() {
+	rid := primitive.NewObjectID()
+	uid, _ := primitive.ObjectIDFromHex("507f1f77bcf86cd799439011")
+	expected := &resourcepkg.ResourceAnalytics{ResourceID: rid}
+	s.mockResourceUsecase.On("GetResourceAnalytics", mock.Anything, rid, uid).Return(expected, nil)
+	w := s.performRequest("GET", "/resources/"+rid.Hex()+"/analytics", nil, map[string]string{"Authorization": "Bearer token"})
+	s.Equal(http.StatusOK, w.Code)
+}
+
+func (s *ResourceControllerTestSuite) TestGetResourceAnalytics_InvalidID() {
+	w := s.performRequest("GET", "/resources/invalid/analytics", nil, map[string]string{"Authorization": "Bearer token"})
+	s.Equal(http.StatusBadRequest, w.Code)
+}
+
+func (s *ResourceControllerTestSuite) TestGetResourceAnalytics_Unauthorized() {
+	rid := primitive.NewObjectID()
+	w := s.performRequest("GET", "/resources/"+rid.Hex()+"/analytics", nil, nil)
+	s.Equal(http.StatusUnauthorized, w.Code)
+}
+
+func (s *ResourceControllerTestSuite) TestGetResourceAnalytics_Forbidden() {
+	rid := primitive.NewObjectID()
+	uid, _ := primitive.ObjectIDFromHex("507f1f77bcf86cd799439011")
+	s.mockResourceUsecase.On("GetResourceAnalytics", mock.Anything, rid, uid).Return(nil, errors.New("unauthorized: only the creator can view analytics")).Once()
+	w := s.performRequest("GET", "/resources/"+rid.Hex()+"/analytics", nil, map[string]string{"Authorization": "Bearer token"})
+	s.Equal(http.StatusForbidden, w.Code)
+}
+
+func (s *ResourceControllerTestSuite) TestGetResourceAnalytics_NotFound() {
+	rid := primitive.NewObjectID()
+	uid, _ := primitive.ObjectIDFromHex("507f1f77bcf86cd799439011")
+	s.mockResourceUsecase.On("GetResourceAnalytics", mock.Anything, rid, uid).Return(nil, errors.New("resource not found")).Once()
+	w := s.performRequest("GET", "/resources/"+rid.Hex()+"/analytics", nil, map[string]string{"Authorization": "Bearer token"})
+	s.Equal(http.StatusNotFound, w.Code)
+}
+
+func (s *ResourceControllerTestSuite) TestGetUserResourceStats_Success() {
+	uid := primitive.NewObjectID()
+	expected := &resourcepkg.UserResourceStats{UserID: uid}
+	s.mockResourceUsecase.On("GetUserResourceStats", mock.Anything, uid).Return(expected, nil)
+	w := s.performRequest("GET", "/users/"+uid.Hex()+"/resources/stats", nil, nil)
+	s.Equal(http.StatusOK, w.Code)
+}
+
+func (s *ResourceControllerTestSuite) TestGetUserResourceStats_InvalidUserID() {
+	w := s.performRequest("GET", "/users/invalid/resources/stats", nil, nil)
+	s.Equal(http.StatusBadRequest, w.Code)
+}
+
+func (s *ResourceControllerTestSuite) TestGetUserResourceStats_InternalError() {
+	uid := primitive.NewObjectID()
+	s.mockResourceUsecase.On("GetUserResourceStats", mock.Anything, uid).Return(nil, errors.New("boom")).Once()
+	w := s.performRequest("GET", "/users/"+uid.Hex()+"/resources/stats", nil, nil)
+	s.Equal(http.StatusInternalServerError, w.Code)
+}
+
+func (s *ResourceControllerTestSuite) TestReportResource_Success() {
+	rid := primitive.NewObjectID()
+	uid, _ := primitive.ObjectIDFromHex("507f1f77bcf86cd799439011")
+	s.mockResourceUsecase.On("ReportResource", mock.Anything, rid, uid, "spam").Return(nil)
+	body := map[string]string{"reason": "spam"}
+	w := s.performRequest("POST", "/resources/"+rid.Hex()+"/report", body, map[string]string{"Authorization": "Bearer token"})
+	s.Equal(http.StatusOK, w.Code)
+}
+
+func (s *ResourceControllerTestSuite) TestReportResource_InvalidID() {
+	body := map[string]string{"reason": "spam"}
+	w := s.performRequest("POST", "/resources/invalid/report", body, map[string]string{"Authorization": "Bearer token"})
+	s.Equal(http.StatusBadRequest, w.Code)
+}
+
+func (s *ResourceControllerTestSuite) TestReportResource_MissingReason() {
+	rid := primitive.NewObjectID()
+	body := map[string]string{}
+	w := s.performRequest("POST", "/resources/"+rid.Hex()+"/report", body, map[string]string{"Authorization": "Bearer token"})
+	s.Equal(http.StatusBadRequest, w.Code)
+}
+
+func (s *ResourceControllerTestSuite) TestReportResource_Unauthorized() {
+	rid := primitive.NewObjectID()
+	body := map[string]string{"reason": "spam"}
+	w := s.performRequest("POST", "/resources/"+rid.Hex()+"/report", body, nil)
+	s.Equal(http.StatusUnauthorized, w.Code)
+}
+
+func (s *ResourceControllerTestSuite) TestReportResource_NotFound() {
+	rid := primitive.NewObjectID()
+	uid, _ := primitive.ObjectIDFromHex("507f1f77bcf86cd799439011")
+	s.mockResourceUsecase.On("ReportResource", mock.Anything, rid, uid, "spam").Return(errors.New("resource not found")).Once()
+	body := map[string]string{"reason": "spam"}
+	w := s.performRequest("POST", "/resources/"+rid.Hex()+"/report", body, map[string]string{"Authorization": "Bearer token"})
+	s.Equal(http.StatusNotFound, w.Code)
+}
+
+func (s *ResourceControllerTestSuite) TestVerifyResource_Success() {
+	rid := primitive.NewObjectID()
+	uid, _ := primitive.ObjectIDFromHex("507f1f77bcf86cd799439011")
+	s.mockResourceUsecase.On("VerifyResource", mock.Anything, rid, uid).Return(nil)
+	w := s.performRequest("POST", "/resources/"+rid.Hex()+"/verify", nil, map[string]string{"Authorization": "Bearer token"})
+	s.Equal(http.StatusOK, w.Code)
+}
+
+func (s *ResourceControllerTestSuite) TestVerifyResource_InvalidID() {
+	w := s.performRequest("POST", "/resources/invalid/verify", nil, map[string]string{"Authorization": "Bearer token"})
+	s.Equal(http.StatusBadRequest, w.Code)
+}
+
+func (s *ResourceControllerTestSuite) TestVerifyResource_Unauthorized() {
+	rid := primitive.NewObjectID()
+	w := s.performRequest("POST", "/resources/"+rid.Hex()+"/verify", nil, nil)
+	s.Equal(http.StatusUnauthorized, w.Code)
+}
+
+func (s *ResourceControllerTestSuite) TestVerifyResource_NotFound() {
+	rid := primitive.NewObjectID()
+	uid, _ := primitive.ObjectIDFromHex("507f1f77bcf86cd799439011")
+	s.mockResourceUsecase.On("VerifyResource", mock.Anything, rid, uid).Return(errors.New("resource not found")).Once()
+	w := s.performRequest("POST", "/resources/"+rid.Hex()+"/verify", nil, map[string]string{"Authorization": "Bearer token"})
+	s.Equal(http.StatusNotFound, w.Code)
 }

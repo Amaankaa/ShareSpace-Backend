@@ -573,3 +573,136 @@ func (ctrl *ResourceController) GetUserBookmarkedResources(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, res)
 }
+
+// GET /resources/:id/analytics (creator-only)
+func (ctrl *ResourceController) GetResourceAnalytics(c *gin.Context) {
+	resID, err := primitive.ObjectIDFromHex(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid resource ID"})
+		return
+	}
+	var uidStr string
+	if v, ok := c.Get("userID"); ok {
+		uidStr = v.(string)
+	} else if v, ok := c.Get("user_id"); ok {
+		uidStr = v.(string)
+	} else {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+		return
+	}
+	userID, err := primitive.ObjectIDFromHex(uidStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		return
+	}
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 10*time.Second)
+	defer cancel()
+	analytics, err := ctrl.usecase.GetResourceAnalytics(ctx, resID, userID)
+	if err != nil {
+		if err.Error() == "resource not found" {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Resource not found"})
+			return
+		}
+		if err.Error() == "unauthorized: only the creator can view analytics" {
+			c.JSON(http.StatusForbidden, gin.H{"error": "You can only view analytics for your own resources"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, analytics)
+}
+
+// GET /users/:id/resources/stats
+func (ctrl *ResourceController) GetUserResourceStats(c *gin.Context) {
+	uid, err := primitive.ObjectIDFromHex(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		return
+	}
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 10*time.Second)
+	defer cancel()
+	stats, err := ctrl.usecase.GetUserResourceStats(ctx, uid)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, stats)
+}
+
+type reportRequest struct {
+	Reason string `json:"reason"`
+}
+
+// POST /resources/:id/report
+func (ctrl *ResourceController) ReportResource(c *gin.Context) {
+	resID, err := primitive.ObjectIDFromHex(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid resource ID"})
+		return
+	}
+	var uidStr string
+	if v, ok := c.Get("userID"); ok {
+		uidStr = v.(string)
+	} else if v, ok := c.Get("user_id"); ok {
+		uidStr = v.(string)
+	} else {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+		return
+	}
+	userID, err := primitive.ObjectIDFromHex(uidStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		return
+	}
+	var req reportRequest
+	if err := c.ShouldBindJSON(&req); err != nil || req.Reason == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Reason is required"})
+		return
+	}
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 10*time.Second)
+	defer cancel()
+	if err := ctrl.usecase.ReportResource(ctx, resID, userID, req.Reason); err != nil {
+		if err.Error() == "resource not found" {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Resource not found"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Resource reported successfully"})
+}
+
+// POST /resources/:id/verify (admin-only via router middleware)
+func (ctrl *ResourceController) VerifyResource(c *gin.Context) {
+	resID, err := primitive.ObjectIDFromHex(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid resource ID"})
+		return
+	}
+	var uidStr string
+	if v, ok := c.Get("userID"); ok {
+		uidStr = v.(string)
+	} else if v, ok := c.Get("user_id"); ok {
+		uidStr = v.(string)
+	} else {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+		return
+	}
+	verifierID, err := primitive.ObjectIDFromHex(uidStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		return
+	}
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 10*time.Second)
+	defer cancel()
+	if err := ctrl.usecase.VerifyResource(ctx, resID, verifierID); err != nil {
+		if err.Error() == "resource not found" {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Resource not found"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Resource verified successfully"})
+}

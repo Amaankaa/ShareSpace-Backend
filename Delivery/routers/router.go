@@ -64,6 +64,8 @@ func SetupRouter(controller *controllers.Controller, authMiddleware *infrastruct
 	protected.DELETE("/resources/:id/like", controller.ResourceController.UnlikeResource)
 	protected.POST("/resources/:id/bookmark", controller.ResourceController.BookmarkResource)
 	protected.DELETE("/resources/:id/bookmark", controller.ResourceController.UnbookmarkResource)
+	protected.GET("/resources/:id/analytics", controller.ResourceController.GetResourceAnalytics)
+	protected.POST("/resources/:id/report", controller.ResourceController.ReportResource)
 
 	// Resources routes (public)
 	r.GET("/resources", controller.ResourceController.GetResources)
@@ -76,11 +78,31 @@ func SetupRouter(controller *controllers.Controller, authMiddleware *infrastruct
 	r.GET("/users/:id/resources/liked", controller.ResourceController.GetUserLikedResources)
 	r.GET("/users/:id/resources/bookmarked", controller.ResourceController.GetUserBookmarkedResources)
 
+	// Mentorship routes (protected)
+	protected.POST("/mentorship/requests", controller.MentorshipController.SendMentorshipRequest)
+	protected.GET("/mentorship/requests/incoming", controller.MentorshipController.GetIncomingRequests)
+	protected.GET("/mentorship/requests/outgoing", controller.MentorshipController.GetOutgoingRequests)
+	protected.POST("/mentorship/requests/:id/respond", controller.MentorshipController.RespondToRequest)
+	protected.DELETE("/mentorship/requests/:id", controller.MentorshipController.CancelRequest)
+	protected.GET("/mentorship/connections/:id", controller.MentorshipController.GetConnection)
+	protected.GET("/mentorship/connections/mentor", controller.MentorshipController.GetMyMentorships)
+	protected.GET("/mentorship/connections/mentee", controller.MentorshipController.GetMyMenteerships)
+	protected.GET("/mentorship/connections/active", controller.MentorshipController.GetActiveConnections)
+	protected.POST("/mentorship/connections/:id/interaction", controller.MentorshipController.UpdateLastInteraction)
+	protected.POST("/mentorship/connections/:id/pause", controller.MentorshipController.PauseConnection)
+	protected.POST("/mentorship/connections/:id/resume", controller.MentorshipController.ResumeConnection)
+	protected.POST("/mentorship/connections/:id/end", controller.MentorshipController.EndConnection)
+	protected.GET("/mentorship/stats", controller.MentorshipController.GetMentorshipStats)
+	protected.GET("/mentorship/insights", controller.MentorshipController.GetMentorshipInsights)
+	r.GET("/users/:id/resources/stats", controller.ResourceController.GetUserResourceStats)
+
 	// Admin routes for user promotion and demotion
 	admin := protected.Group("")
 	admin.Use(authMiddleware.AdminOnly())
 	admin.PUT("/user/:id/promote", controller.PromoteUser)
 	admin.PUT("/user/:id/demote", controller.DemoteUser)
+	// Admin-only resource verification
+	admin.POST("/resources/:id/verify", controller.ResourceController.VerifyResource)
 
 	return r
 }
