@@ -44,6 +44,7 @@ func main() {
 	verificationCollection := db.Collection("verifications")
 	postCollection := db.Collection("posts")
 	resourceCollection := db.Collection("resources")
+	commentCollection := db.Collection("comments")
 
 	// Initialize infrastructure services
 	passwordService := infrastructure.NewPasswordService()
@@ -76,6 +77,7 @@ func main() {
 	passwordResetRepo := repositories.NewPasswordResetRepo(passwordResetCollection, userCollection)
 	postRepo := repositories.NewPostRepository(postCollection)
 	resourceRepo := repositories.NewResourceRepository(resourceCollection)
+	commentRepo := repositories.NewCommentRepository(commentCollection)
 	//AI configuration
 	aiAPIKey := os.Getenv("GEMINI_API_KEY")
 	if aiAPIKey == "" {
@@ -101,11 +103,13 @@ func main() {
 	)
 	postUsecase := usecases.NewPostUsecase(postRepo, userRepo)
 	resourceUsecase := usecases.NewResourceUsecase(resourceRepo, userRepo)
+	commentUsecase := usecases.NewCommentUsecase(commentRepo, postRepo, userRepo)
 
 	//Controllers
 	postController := controllers.NewPostController(postUsecase)
 	resourceController := controllers.NewResourceController(resourceUsecase)
-	controller := controllers.NewControllerWithResources(userUsecase, postController, resourceController)
+	commentController := controllers.NewCommentController(commentUsecase)
+	controller := controllers.NewControllerWithComments(userUsecase, postController, resourceController, nil, commentController)
 
 	// Initialize AuthMiddleware
 	authMiddleware := infrastructure.NewAuthMiddleware(jwtService)
