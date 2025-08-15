@@ -156,8 +156,8 @@ func (s *PostRepositoryTestSuite) TestUpdatePost_Success() {
 			{Key: "updatedAt", Value: time.Now()},
 		}
 
-	// FindOneAndUpdate returns a document in the 'value' field, not a cursor
-	mt.AddMockResponses(mtest.CreateSuccessResponse(bson.E{Key: "value", Value: updatedPost}))
+		// FindOneAndUpdate returns a document in the 'value' field, not a cursor
+		mt.AddMockResponses(mtest.CreateSuccessResponse(bson.E{Key: "value", Value: updatedPost}))
 
 		// Act
 		result, err := s.repo.UpdatePost(context.Background(), postID, updates)
@@ -262,14 +262,14 @@ func (s *PostRepositoryTestSuite) TestGetPosts_Success() {
 			{Key: "createdAt", Value: time.Now()},
 		}
 
-	// Mock count response for CountDocuments (aggregate style with cursor)
-	mt.AddMockResponses(mtest.CreateCursorResponse(0, "blog_db.posts", mtest.FirstBatch, bson.D{{Key: "n", Value: 2}}))
-	// Mock find response with single batch (cursorID 0 means no getMore)
-	mt.AddMockResponses(mtest.CreateCursorResponse(0, "blog_db.posts", mtest.FirstBatch, post1, post2))
+		// Mock count response for CountDocuments (aggregate style with cursor)
+		mt.AddMockResponses(mtest.CreateCursorResponse(0, "blog_db.posts", mtest.FirstBatch, bson.D{{Key: "n", Value: 2}}))
+		// Mock find response with single batch (cursorID 0 means no getMore)
+		mt.AddMockResponses(mtest.CreateCursorResponse(0, "blog_db.posts", mtest.FirstBatch, post1, post2))
 
 		filter := postpkg.PostFilter{Category: "Academic Struggles"}
 		pagination := postpkg.PostPagination{Page: 1, PageSize: 10}
-	
+
 		// Act
 		posts, total, err := s.repo.GetPosts(context.Background(), filter, pagination)
 
@@ -348,8 +348,8 @@ func (s *PostRepositoryTestSuite) TestIsPostLikedByUser_True() {
 		postID := primitive.NewObjectID()
 		userID := primitive.NewObjectID()
 
-	// CountDocuments returns a cursor with a doc containing field 'n'
-	mt.AddMockResponses(mtest.CreateCursorResponse(0, "blog_db.posts", mtest.FirstBatch, bson.D{{Key: "n", Value: 1}}))
+		// CountDocuments returns a cursor with a doc containing field 'n'
+		mt.AddMockResponses(mtest.CreateCursorResponse(0, "blog_db.posts", mtest.FirstBatch, bson.D{{Key: "n", Value: 1}}))
 
 		// Act
 		isLiked, err := s.repo.IsPostLikedByUser(context.Background(), postID, userID)
@@ -368,8 +368,8 @@ func (s *PostRepositoryTestSuite) TestIsPostLikedByUser_False() {
 		postID := primitive.NewObjectID()
 		userID := primitive.NewObjectID()
 
-	// CountDocuments returns a cursor with a doc containing field 'n'
-	mt.AddMockResponses(mtest.CreateCursorResponse(0, "blog_db.posts", mtest.FirstBatch, bson.D{{Key: "n", Value: 0}}))
+		// CountDocuments returns a cursor with a doc containing field 'n'
+		mt.AddMockResponses(mtest.CreateCursorResponse(0, "blog_db.posts", mtest.FirstBatch, bson.D{{Key: "n", Value: 0}}))
 
 		// Act
 		isLiked, err := s.repo.IsPostLikedByUser(context.Background(), postID, userID)
@@ -432,10 +432,10 @@ func (s *PostRepositoryTestSuite) TestSearchPosts_Success() {
 			{Key: "status", Value: postpkg.PostStatusActive},
 		}
 
-	// Mock count response for CountDocuments (cursor)
-	mt.AddMockResponses(mtest.CreateCursorResponse(0, "blog_db.posts", mtest.FirstBatch, bson.D{{Key: "n", Value: 1}}))
-	// Mock find response with single batch
-	mt.AddMockResponses(mtest.CreateCursorResponse(0, "blog_db.posts", mtest.FirstBatch, post))
+		// Mock count response for CountDocuments (cursor)
+		mt.AddMockResponses(mtest.CreateCursorResponse(0, "blog_db.posts", mtest.FirstBatch, bson.D{{Key: "n", Value: 1}}))
+		// Mock find response with single batch
+		mt.AddMockResponses(mtest.CreateCursorResponse(0, "blog_db.posts", mtest.FirstBatch, post))
 
 		filter := postpkg.PostFilter{}
 		pagination := postpkg.PostPagination{Page: 1, PageSize: 10}
