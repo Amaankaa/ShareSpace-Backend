@@ -43,6 +43,7 @@ func main() {
 	passwordResetCollection := db.Collection("password_resets")
 	verificationCollection := db.Collection("verifications")
 	postCollection := db.Collection("posts")
+	resourceCollection := db.Collection("resources")
 
 	// Initialize infrastructure services
 	passwordService := infrastructure.NewPasswordService()
@@ -74,6 +75,7 @@ func main() {
 	tokenRepo := repositories.NewTokenRepository(tokenCollection)
 	passwordResetRepo := repositories.NewPasswordResetRepo(passwordResetCollection, userCollection)
 	postRepo := repositories.NewPostRepository(postCollection)
+	resourceRepo := repositories.NewResourceRepository(resourceCollection)
 	//AI configuration
 	aiAPIKey := os.Getenv("GEMINI_API_KEY")
 	if aiAPIKey == "" {
@@ -98,10 +100,12 @@ func main() {
 		cloudinaryService,
 	)
 	postUsecase := usecases.NewPostUsecase(postRepo, userRepo)
+	resourceUsecase := usecases.NewResourceUsecase(resourceRepo, userRepo)
 
 	//Controllers
 	postController := controllers.NewPostController(postUsecase)
-	controller := controllers.NewController(userUsecase, postController)
+	resourceController := controllers.NewResourceController(resourceUsecase)
+	controller := controllers.NewControllerWithResources(userUsecase, postController, resourceController)
 
 	// Initialize AuthMiddleware
 	authMiddleware := infrastructure.NewAuthMiddleware(jwtService)

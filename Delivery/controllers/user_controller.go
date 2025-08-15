@@ -11,15 +11,24 @@ import (
 )
 
 type Controller struct {
-	userUsecase    userpkg.IUserUsecase
-	PostController *PostController
+	userUsecase        userpkg.IUserUsecase
+	PostController     *PostController
+	ResourceController *ResourceController
 }
 
+// Backwards-compatible constructor (without resource controller)
 func NewController(userUsecase userpkg.IUserUsecase, postController *PostController) *Controller {
 	return &Controller{
 		userUsecase:    userUsecase,
 		PostController: postController,
 	}
+}
+
+// Extended constructor including resource controller
+func NewControllerWithResources(userUsecase userpkg.IUserUsecase, postController *PostController, resourceController *ResourceController) *Controller {
+	ctrl := NewController(userUsecase, postController)
+	ctrl.ResourceController = resourceController
+	return ctrl
 }
 
 // User Controllers

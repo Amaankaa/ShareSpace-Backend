@@ -56,6 +56,26 @@ func SetupRouter(controller *controllers.Controller, authMiddleware *infrastruct
 	r.GET("/posts/category/:category", controller.PostController.GetPostsByCategory)
 	r.GET("/users/:userId/posts", controller.PostController.GetUserPosts)
 
+	// Resources routes (protected)
+	protected.POST("/resources", controller.ResourceController.CreateResource)
+	protected.PATCH("/resources/:id", controller.ResourceController.UpdateResource)
+	protected.DELETE("/resources/:id", controller.ResourceController.DeleteResource)
+	protected.POST("/resources/:id/like", controller.ResourceController.LikeResource)
+	protected.DELETE("/resources/:id/like", controller.ResourceController.UnlikeResource)
+	protected.POST("/resources/:id/bookmark", controller.ResourceController.BookmarkResource)
+	protected.DELETE("/resources/:id/bookmark", controller.ResourceController.UnbookmarkResource)
+
+	// Resources routes (public)
+	r.GET("/resources", controller.ResourceController.GetResources)
+	r.GET("/resources/search", controller.ResourceController.SearchResources)
+	r.GET("/resources/popular", controller.ResourceController.GetPopularResources)
+	r.GET("/resources/trending", controller.ResourceController.GetTrendingResources)
+	r.GET("/resources/top-rated", controller.ResourceController.GetTopRatedResources)
+	r.GET("/resources/:id", controller.ResourceController.GetResource)
+	r.GET("/users/:id/resources", controller.ResourceController.GetUserResources)
+	r.GET("/users/:id/resources/liked", controller.ResourceController.GetUserLikedResources)
+	r.GET("/users/:id/resources/bookmarked", controller.ResourceController.GetUserBookmarkedResources)
+
 	// Admin routes for user promotion and demotion
 	admin := protected.Group("")
 	admin.Use(authMiddleware.AdminOnly())
