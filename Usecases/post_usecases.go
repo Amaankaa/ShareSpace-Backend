@@ -81,10 +81,8 @@ func (uc *PostUsecase) GetPost(ctx context.Context, id primitive.ObjectID, viewe
 		return nil, fmt.Errorf("failed to get author: %w", err)
 	}
 
-	// Increment view count (async, don't block on errors)
-	go func() {
-		_ = uc.postRepo.IncrementViewCount(context.Background(), id)
-	}()
+	// Increment view count (don't block on errors)
+	_ = uc.postRepo.IncrementViewCount(ctx, id)
 
 	// Check if viewer has liked the post
 	var isLikedByUser bool

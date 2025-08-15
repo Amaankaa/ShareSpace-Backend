@@ -26,7 +26,7 @@ type ControllerTestSuite struct {
 func (s *ControllerTestSuite) SetupTest() {
 	gin.SetMode(gin.TestMode)
 	s.mockUC = new(mock_user.IUserUsecase)
-	ctrl := controllers.NewController(s.mockUC)
+	ctrl := controllers.NewController(s.mockUC, nil)
 	s.router = gin.Default()
 	s.router.POST("/register", ctrl.Register)
 	// Registration verification endpoint
@@ -245,7 +245,7 @@ func (s *ControllerTestSuite) TestGetProfile_Success() {
 	s.router.GET("/profile", func(c *gin.Context) {
 		c.Set("user_id", "valid-user-id")
 		c.Next()
-	}, controllers.NewController(s.mockUC).GetProfile)
+	}, controllers.NewController(s.mockUC, nil).GetProfile)
 
 	// Act
 	w := s.performRequest("GET", "/profile", nil)
@@ -260,7 +260,7 @@ func (s *ControllerTestSuite) TestGetProfile_Success() {
 
 func (s *ControllerTestSuite) TestGetProfile_Unauthorized() {
 	// Arrange
-	s.router.GET("/profile", controllers.NewController(s.mockUC).GetProfile)
+	s.router.GET("/profile", controllers.NewController(s.mockUC, nil).GetProfile)
 
 	// Act
 	w := s.performRequest("GET", "/profile", nil)
