@@ -174,7 +174,10 @@ func (ctrl *Controller) ResetPassword(c *gin.Context) {
 }
 
 func (ctrl *Controller) Logout(c *gin.Context) {
-	userID := c.GetString("userID") // assuming middleware sets this
+	userID := c.GetString("userID")
+	if userID == "" {
+		userID = c.GetString("user_id")
+	}
 	if userID == "" {
 		c.JSON(http.StatusUnauthorized, gin.H{"message": "Unauthorized"})
 		return
