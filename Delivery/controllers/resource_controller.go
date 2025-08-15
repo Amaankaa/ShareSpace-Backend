@@ -484,7 +484,7 @@ func (ctrl *ResourceController) GetTopRatedResources(c *gin.Context) {
 
 // GET /users/:id/resources, /liked, /bookmarked
 func (ctrl *ResourceController) GetUserResources(c *gin.Context) {
-	uid, err := primitive.ObjectIDFromHex(c.Param("id"))
+	uid, err := primitive.ObjectIDFromHex(c.Param("userId"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
 		return
@@ -521,7 +521,7 @@ func (ctrl *ResourceController) GetUserResources(c *gin.Context) {
 }
 
 func (ctrl *ResourceController) GetUserLikedResources(c *gin.Context) {
-	uid, err := primitive.ObjectIDFromHex(c.Param("id"))
+	uid, err := primitive.ObjectIDFromHex(c.Param("userId"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
 		return
@@ -548,7 +548,7 @@ func (ctrl *ResourceController) GetUserLikedResources(c *gin.Context) {
 }
 
 func (ctrl *ResourceController) GetUserBookmarkedResources(c *gin.Context) {
-	uid, err := primitive.ObjectIDFromHex(c.Param("id"))
+	uid, err := primitive.ObjectIDFromHex(c.Param("userId"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
 		return
@@ -615,7 +615,7 @@ func (ctrl *ResourceController) GetResourceAnalytics(c *gin.Context) {
 
 // GET /users/:id/resources/stats
 func (ctrl *ResourceController) GetUserResourceStats(c *gin.Context) {
-	uid, err := primitive.ObjectIDFromHex(c.Param("id"))
+	uid, err := primitive.ObjectIDFromHex(c.Param("userId"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
 		return

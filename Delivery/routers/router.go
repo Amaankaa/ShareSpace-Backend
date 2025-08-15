@@ -79,9 +79,9 @@ func SetupRouter(controller *controllers.Controller, authMiddleware *infrastruct
 	r.GET("/resources/trending", controller.ResourceController.GetTrendingResources)
 	r.GET("/resources/top-rated", controller.ResourceController.GetTopRatedResources)
 	r.GET("/resources/:id", controller.ResourceController.GetResource)
-	r.GET("/users/:id/resources", controller.ResourceController.GetUserResources)
-	r.GET("/users/:id/resources/liked", controller.ResourceController.GetUserLikedResources)
-	r.GET("/users/:id/resources/bookmarked", controller.ResourceController.GetUserBookmarkedResources)
+	r.GET("/users/:userId/resources", controller.ResourceController.GetUserResources)
+	r.GET("/users/:userId/resources/liked", controller.ResourceController.GetUserLikedResources)
+	r.GET("/users/:userId/resources/bookmarked", controller.ResourceController.GetUserBookmarkedResources)
 
 	// Mentorship routes (protected)
 	if controller.MentorshipController != nil {
@@ -101,7 +101,7 @@ func SetupRouter(controller *controllers.Controller, authMiddleware *infrastruct
 		protected.GET("/mentorship/stats", controller.MentorshipController.GetMentorshipStats)
 		protected.GET("/mentorship/insights", controller.MentorshipController.GetMentorshipInsights)
 	}
-	r.GET("/users/:id/resources/stats", controller.ResourceController.GetUserResourceStats)
+	r.GET("/users/:userId/resources/stats", controller.ResourceController.GetUserResourceStats)
 
 	// Messaging routes (protected) and WebSocket endpoint
 	if controller.MessagingController != nil {
