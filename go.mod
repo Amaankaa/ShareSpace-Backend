@@ -3,20 +3,20 @@ module github.com/Amaankaa/Blog-Starter-Project
 go 1.24.4
 
 require (
+	github.com/cloudinary/cloudinary-go/v2 v2.11.1
 	github.com/gin-gonic/gin v1.10.1
 	github.com/golang-jwt/jwt/v4 v4.5.2
 	github.com/joho/godotenv v1.5.1
-	github.com/resend/resend-go/v2 v2.22.0
 	github.com/stretchr/testify v1.10.0
 	go.mongodb.org/mongo-driver v1.17.4
 	golang.org/x/crypto v0.37.0
 	golang.org/x/time v0.12.0
+	nhooyr.io/websocket v1.8.11
 )
 
 require (
 	github.com/bytedance/sonic v1.11.6 // indirect
 	github.com/bytedance/sonic/loader v0.1.1 // indirect
-	github.com/cloudinary/cloudinary-go/v2 v2.11.1 // indirect
 	github.com/cloudwego/base64x v0.1.4 // indirect
 	github.com/cloudwego/iasm v0.2.0 // indirect
 	github.com/creasty/defaults v1.7.0 // indirect

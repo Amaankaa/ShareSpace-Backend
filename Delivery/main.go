@@ -45,6 +45,8 @@ func main() {
 	postCollection := db.Collection("posts")
 	resourceCollection := db.Collection("resources")
 	commentCollection := db.Collection("comments")
+	conversationsCollection := db.Collection("conversations")
+	messagesCollection := db.Collection("messages")
 
 	// Initialize infrastructure services
 	passwordService := infrastructure.NewPasswordService()
@@ -78,6 +80,7 @@ func main() {
 	postRepo := repositories.NewPostRepository(postCollection)
 	resourceRepo := repositories.NewResourceRepository(resourceCollection)
 	commentRepo := repositories.NewCommentRepository(commentCollection)
+	messagingRepo := repositories.NewMessagingRepository(conversationsCollection, messagesCollection)
 	//AI configuration
 	aiAPIKey := os.Getenv("GEMINI_API_KEY")
 	if aiAPIKey == "" {
@@ -104,18 +107,25 @@ func main() {
 	postUsecase := usecases.NewPostUsecase(postRepo, userRepo)
 	resourceUsecase := usecases.NewResourceUsecase(resourceRepo, userRepo)
 	commentUsecase := usecases.NewCommentUsecase(commentRepo, postRepo, userRepo)
+	messagingUsecase := usecases.NewMessagingUsecase(messagingRepo, userRepo)
 
 	//Controllers
 	postController := controllers.NewPostController(postUsecase)
 	resourceController := controllers.NewResourceController(resourceUsecase)
 	commentController := controllers.NewCommentController(commentUsecase)
-	controller := controllers.NewControllerWithComments(userUsecase, postController, resourceController, nil, commentController)
+	messagingController := controllers.NewMessagingController(messagingUsecase)
+	controller := controllers.NewControllerWithMessaging(userUsecase, postController, resourceController, nil, commentController, messagingController)
 
 	// Initialize AuthMiddleware
 	authMiddleware := infrastructure.NewAuthMiddleware(jwtService)
 
 	//Router
 	r := routers.SetupRouter(controller, authMiddleware)
+	// WebSocket hub and route
+	hub := infrastructure.NewHub(messagingUsecase)
+	protected := r.Group("")
+	protected.Use(authMiddleware.AuthMiddleware())
+	protected.GET("/ws", hub.WSHandler)
 
 	//Start Server
 	log.Println("Server running on :8080")

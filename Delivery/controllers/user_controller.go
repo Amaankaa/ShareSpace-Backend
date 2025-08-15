@@ -11,11 +11,12 @@ import (
 )
 
 type Controller struct {
-	userUsecase        userpkg.IUserUsecase
-	PostController     *PostController
-	ResourceController *ResourceController
+	userUsecase          userpkg.IUserUsecase
+	PostController       *PostController
+	ResourceController   *ResourceController
 	MentorshipController *MentorshipController
-	CommentController  *CommentController
+	CommentController    *CommentController
+	MessagingController  *MessagingController
 }
 
 // Backwards-compatible constructor (without resource controller)
@@ -44,6 +45,13 @@ func NewControllerWithMentorship(userUsecase userpkg.IUserUsecase, postControlle
 func NewControllerWithComments(userUsecase userpkg.IUserUsecase, postController *PostController, resourceController *ResourceController, mentorshipController *MentorshipController, commentController *CommentController) *Controller {
 	ctrl := NewControllerWithMentorship(userUsecase, postController, resourceController, mentorshipController)
 	ctrl.CommentController = commentController
+	return ctrl
+}
+
+// Extended constructor including messaging controller
+func NewControllerWithMessaging(userUsecase userpkg.IUserUsecase, postController *PostController, resourceController *ResourceController, mentorshipController *MentorshipController, commentController *CommentController, messagingController *MessagingController) *Controller {
+	ctrl := NewControllerWithComments(userUsecase, postController, resourceController, mentorshipController, commentController)
+	ctrl.MessagingController = messagingController
 	return ctrl
 }
 

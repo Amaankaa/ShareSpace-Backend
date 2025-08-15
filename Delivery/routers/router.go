@@ -103,6 +103,13 @@ func SetupRouter(controller *controllers.Controller, authMiddleware *infrastruct
 	}
 	r.GET("/users/:id/resources/stats", controller.ResourceController.GetUserResourceStats)
 
+	// Messaging routes (protected) and WebSocket endpoint
+	if controller.MessagingController != nil {
+		protected.POST("/conversations", controller.MessagingController.CreateConversation)
+		protected.GET("/conversations", controller.MessagingController.GetConversations)
+		protected.GET("/conversations/:id/messages", controller.MessagingController.GetMessages)
+	}
+
 	// Admin routes for user promotion and demotion
 	admin := protected.Group("")
 	admin.Use(authMiddleware.AdminOnly())
