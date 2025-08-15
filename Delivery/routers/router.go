@@ -8,10 +8,13 @@ import (
 	infrastructure "github.com/Amaankaa/Blog-Starter-Project/Infrastructure"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gin-contrib/cors"
 )
 
 func SetupRouter(controller *controllers.Controller, authMiddleware *infrastructure.AuthMiddleware) *gin.Engine {
 	r := gin.Default()
+	// CORS (adjust for production as needed)
+	r.Use(cors.Default())
 
 	// Health check endpoint
 	r.GET("/health", func(c *gin.Context) {
@@ -30,6 +33,8 @@ func SetupRouter(controller *controllers.Controller, authMiddleware *infrastruct
 	r.POST("/forgot-password", controller.ForgotPassword)
 	r.POST("/verify-otp", controller.VerifyOTP)
 	r.POST("/reset-password", controller.ResetPassword)
+	// Optional: expose refresh endpoint
+	r.POST("/auth/refresh", controller.RefreshToken)
 
 	// Protected routes
 	protected := r.Group("")

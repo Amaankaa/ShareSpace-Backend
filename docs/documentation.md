@@ -123,6 +123,7 @@ Base URL: `http://localhost:8080`
   - POST `/forgot-password` – send reset OTP
   - POST `/verify-otp` – verify password reset OTP
   - POST `/reset-password` – reset password after OTP verification
+  - POST `/auth/refresh` – refresh tokens
 - Protected
   - POST `/logout`
   - GET `/profile`
@@ -166,10 +167,10 @@ Base URL: `http://localhost:8080`
   - GET `/resources/trending`
   - GET `/resources/top-rated`
   - GET `/resources/:id`
-  - GET `/users/:id/resources`
-  - GET `/users/:id/resources/liked`
-  - GET `/users/:id/resources/bookmarked`
-  - GET `/users/:id/resources/stats`
+  - GET `/users/:userId/resources`
+  - GET `/users/:userId/resources/liked`
+  - GET `/users/:userId/resources/bookmarked`
+  - GET `/users/:userId/resources/stats`
 
 ### Mentorship
 (Active when the controller is wired.)
